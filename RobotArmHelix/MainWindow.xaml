@@ -1,0 +1,60 @@
+﻿<Window xmlns:h="http://helix-toolkit.org/wpf"  x:Class="RobotArmHelix.MainWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <Grid>
+        <h:HelixViewport3D x:Name="viewPort3d" ViewCubeHeight="150" ViewCubeWidth="150" ViewCubeVerticalPosition="Bottom" CoordinateSystemLabelForeground="White" CoordinateSystemVerticalPosition="Center" CoordinateSystemHorizontalPosition="Right" CoordinateSystemHeight="150" CoordinateSystemWidth="150" RenderOptions.BitmapScalingMode="HighQuality" RenderOptions.EdgeMode="Unspecified" BorderBrush="Black" BorderThickness="5" ShowCoordinateSystem="True" ShowFrameRate="True" Grid.Column="1" ShowCameraInfo="True" MouseLeftButtonUp="ViewPort3D_OnMouseLeftButtonUp" MouseLeftButtonDown="ViewPort3D_OnMouseLeftButtonDown" IsManipulationEnabled="True" IsViewCubeEdgeClicksEnabled="True">
+            <h:HelixViewport3D.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF060A13" Offset="0"/>
+                    <GradientStop Color="#FF1D64FF" Offset="1"/>
+                </LinearGradientBrush>
+            </h:HelixViewport3D.Background>
+            <!-- Remember to add light to the scene -->
+            <h:GridLinesVisual3D Width="16000" Length="16000" Thickness="1.5" MinorDistance="100" MajorDistance="400" Fill="#E5CFCECE" />
+            <h:DefaultLights/>
+        </h:HelixViewport3D>
+        <Rectangle Fill="#FFFBFBFB" HorizontalAlignment="Left" Height="414" Stroke="Black" VerticalAlignment="Top" Width="306" StrokeThickness="0.5" Margin="4,4,0,0"/>
+        <Slider x:Name="joint1" HorizontalAlignment="Left" Margin="46,133,0,0" VerticalAlignment="Top" Width="210"  Maximum="180" Minimum="-180" ValueChanged="joint1_ValueChanged" LargeChange="0.1" TickFrequency="0.1" Height="22"/>
+        <Slider x:Name="joint2" HorizontalAlignment="Left" Margin="46,181,0,0" VerticalAlignment="Top" Width="210" Maximum="180" Minimum="-180" ValueChanged="joint2_ValueChanged" LargeChange="0.1" TickFrequency="0.1" Height="22"/>
+        <Slider x:Name="joint3" HorizontalAlignment="Left" Margin="45,229,0,0" VerticalAlignment="Top" Width="210" Maximum="180" Minimum="-180" ValueChanged="joint3_ValueChanged" LargeChange="0.1" TickFrequency="0.1" Height="22"/>
+        <Slider x:Name="joint4" HorizontalAlignment="Left" Margin="45,279,0,0" VerticalAlignment="Top" Width="210" Maximum="180" Minimum="-180" ValueChanged="joint4_ValueChanged" LargeChange="0.1" TickFrequency="0.1" Height="22"/>
+        <Slider x:Name="joint5" HorizontalAlignment="Left" Margin="45,331,0,0" VerticalAlignment="Top" Width="210" Maximum="180" Minimum="-180" ValueChanged="joint5_ValueChanged" LargeChange="0.1" TickFrequency="0.1" Height="22"/>
+        <Slider x:Name="joint6" HorizontalAlignment="Left" Margin="46,378,0,0" VerticalAlignment="Top" Width="210" Maximum="180" Minimum="-180" ValueChanged="joint6_ValueChanged" Height="22" TickFrequency="0.1"/>
+        <TextBox x:Name="TbX" Text="1500" HorizontalAlignment="Left" Height="23" Margin="30,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="50" TextChanged="TbX_TextChanged" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="TbY" Text="0" HorizontalAlignment="Left" Height="24" Margin="100,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="51" TextChanged="TbX_TextChanged" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="TbZ" Text="1750" HorizontalAlignment="Left" Height="24" Margin="172,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top"  Width="50" TextChanged="TbX_TextChanged" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
+        <Label Content="X" HorizontalAlignment="Left" Margin="13,15,0,0" VerticalAlignment="Top" Foreground="Black" Height="23"/>
+        <Label Content="Y" HorizontalAlignment="Left" Margin="84,15,0,0" VerticalAlignment="Top" Foreground="Black" Height="24"/>
+        <Label Content="Z" HorizontalAlignment="Left" Margin="155,15,0,0" VerticalAlignment="Top" Foreground="Black" Height="23"/>
+        <Label Content="J1" HorizontalAlignment="Left" Margin="10,129,0,0" VerticalAlignment="Top" Width="30" Foreground="Black" FontSize="14" FontWeight="Bold" Height="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <Label x:Name="J1Value" HorizontalAlignment="Left" Margin="255,133,0,0"  VerticalAlignment="Top" Width="50" Foreground="Black" FontSize="10" Content="{Binding Value, ElementName=joint1}" Height="22" ContentStringFormat="{}{0:0.##}" VerticalContentAlignment="Center"    />
+        <Label Content="J2" HorizontalAlignment="Left" Margin="10,174,0,0" VerticalAlignment="Top" Width="30" Foreground="Black" FontSize="14" FontWeight="Bold" Height="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <Label x:Name="J2Value" HorizontalAlignment="Left" Margin="255,181,0,0"  VerticalAlignment="Top" Width="50" Foreground="Black" FontSize="10" Content="{Binding Value, ElementName=joint2}" Height="22" ContentStringFormat="{}{0:0.##}" VerticalContentAlignment="Center"    />
+        <Label Content="J3" HorizontalAlignment="Left" Margin="10,219,0,0" VerticalAlignment="Top" Width="30" Foreground="Black" FontSize="14" FontWeight="Bold" Height="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <Label x:Name="J3Value" HorizontalAlignment="Left" Margin="254,227,0,0"  VerticalAlignment="Top" Width="50" Foreground="Black" FontSize="10" Content="{Binding Value, ElementName=joint3}" Height="22" ContentStringFormat="{}{0:0.##}" VerticalContentAlignment="Center"    />
+        <Label Content="J4" HorizontalAlignment="Left" Margin="10,272,0,0" VerticalAlignment="Top" Width="30" Foreground="Black" FontSize="14" FontWeight="Bold" Height="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <Label x:Name="J4Value" HorizontalAlignment="Left" Margin="254,276,0,0"  VerticalAlignment="Top" Width="50" Foreground="Black" FontSize="10" Content="{Binding Value, ElementName=joint4}" Height="22" ContentStringFormat="{}{0:0.##}" VerticalContentAlignment="Center"    />
+        <Label Content="J5" HorizontalAlignment="Left" Margin="10,324,0,0" VerticalAlignment="Top" Width="30" Foreground="Black" FontSize="14" FontWeight="Bold" Height="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <Label x:Name="J5Value" HorizontalAlignment="Left" Margin="255,332,0,0"  VerticalAlignment="Top" Width="50" Foreground="Black" FontSize="10" Content="{Binding Value, ElementName=joint5}" Height="22" ContentStringFormat="{}{0:0.##}" VerticalContentAlignment="Center"    />
+        <Label Content="J6" HorizontalAlignment="Left" Margin="10,372,0,0" VerticalAlignment="Top" Width="30" Foreground="Black" FontSize="14" FontWeight="Bold" Height="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <Label x:Name="J6Value" HorizontalAlignment="Left" Margin="254,378,0,0"  VerticalAlignment="Top" Width="50" Foreground="Black" FontSize="10" Content="{Binding Value, ElementName=joint6}" Height="22" ContentStringFormat="{}{0:0.##}" VerticalContentAlignment="Center"    />
+        <Label Content="X" HorizontalAlignment="Left" Margin="14,43,0,0" VerticalAlignment="Top" Foreground="Black" Height="25"/>
+        <Label x:Name="Tx" HorizontalAlignment="Left" Margin="31,43,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" Width="63" ContentStringFormat="{}{0:0.##}"/>
+        <Label Content="Y:" HorizontalAlignment="Left" Margin="104,43,0,0" VerticalAlignment="Top" Foreground="Black" Height="25"/>
+        <Label x:Name="Ty" HorizontalAlignment="Left" Margin="121,43,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" Width="67" ContentStringFormat="{}{0:0.##}"/>
+        <Label Content="Z:" HorizontalAlignment="Left" Margin="200,43,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" />
+        <Label x:Name="Tz" HorizontalAlignment="Left" Margin="217,43,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" Width="62" ContentStringFormat="{}{0:0.##}"/>
+        <Label Content="X" HorizontalAlignment="Left" Margin="13,83,0,0" VerticalAlignment="Top" Foreground="Black" Height="25"/>
+        <Label x:Name="Tx_Copy" HorizontalAlignment="Left" Margin="30,83,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" Width="63" ContentStringFormat="{}{0:0.##}"/>
+        <Label Content="Y:" HorizontalAlignment="Left" Margin="103,83,0,0" VerticalAlignment="Top" Foreground="Black" Height="25"/>
+        <Label x:Name="Ty_Copy" HorizontalAlignment="Left" Margin="120,83,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" Width="67" ContentStringFormat="{}{0:0.##}"/>
+        <Label Content="Z:" HorizontalAlignment="Left" Margin="199,83,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" />
+        <Label x:Name="Tz_Copy" HorizontalAlignment="Left" Margin="216,83,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" Width="62" ContentStringFormat="{}{0:0.##}"/>
+        <Button x:Name="button" Content="Go to position" HorizontalAlignment="Left" Margin="230,10,0,0" VerticalAlignment="Top" Width="75" Height="28" FontSize="11" Click="StartInverseKinematics"/>
+    </Grid>
+
+</Window>
