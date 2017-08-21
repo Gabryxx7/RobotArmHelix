@@ -54,6 +54,7 @@ namespace RobotArmHelix
         List<Joint> joints = null;
 
         bool switchingJoint = false;
+        bool isAnimating = false;
 
         Color oldColor = Colors.White;
         GeometryModel3D oldSelectedModel = null;
@@ -143,7 +144,7 @@ namespace RobotArmHelix
             viewPort3d.Camera.UpDirection = new Vector3D(-0.145, 0.372, 0.917);
             viewPort3d.Camera.Position = new Point3D(-1571, 4801, 3774);
 
-            double[] angles = {joint1.Value, joint2.Value, joint3.Value, joint4.Value, joint5.Value, joint6.Value};
+            double[] angles = { joints[0].angle, joints[1].angle, joints[2].angle, joints[3].angle, joints[4].angle, joints[5].angle };
             ForwardKinematics(angles);
 
             changeSelectedJoint();
@@ -293,7 +294,8 @@ namespace RobotArmHelix
         {
             try
             {
-                geom.Transform = new TranslateTransform3D(new Vector3D( Double.Parse(TbX.Text), Double.Parse(TbY.Text), Double.Parse(TbZ.Text)));
+                reachingPoint = new Vector3D(Double.Parse(TbX.Text), Double.Parse(TbY.Text), Double.Parse(TbZ.Text));
+                geom.Transform = new TranslateTransform3D(reachingPoint);
             }
             catch (Exception exc)
             {
@@ -321,10 +323,7 @@ namespace RobotArmHelix
             jointZAxis.IsChecked = joints[sel].rotAxisZ == 1 ? true : false;
             unselectModel();
             selectModel(joints[sel].model);
-            Transform3DGroup F = new Transform3DGroup();
-            F.Children.Add(new TranslateTransform3D(joints[sel].rotPointX, joints[sel].rotPointY, joints[sel].rotPointZ));
-            F.Children.Add(joints[sel].model.Transform);
-            geom.Transform = F;
+            updateSpherePosition();
             switchingJoint = false;
         }
 
@@ -337,11 +336,23 @@ namespace RobotArmHelix
             joints[sel].rotPointX = (int)jointX.Value;
             joints[sel].rotPointY = (int)jointY.Value;
             joints[sel].rotPointZ = (int)jointZ.Value;
-            geom.Transform = new TranslateTransform3D(joints[sel].rotPointX, joints[sel].rotPointY, joints[sel].rotPointZ);
+            updateSpherePosition();
+        }
+
+        private void updateSpherePosition()
+        {
+            int sel = ((int)jointSelector.Value) - 1;
+            Transform3DGroup F = new Transform3DGroup();
+            F.Children.Add(new TranslateTransform3D(joints[sel].rotPointX, joints[sel].rotPointY, joints[sel].rotPointZ));
+            F.Children.Add(joints[sel].model.Transform);
+            geom.Transform = F;
         }
 
         private void joint_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            if (isAnimating)
+                return;
+
             joints[0].angle = joint1.Value;
             joints[1].angle = joint2.Value;
             joints[2].angle = joint3.Value;
@@ -373,6 +384,7 @@ namespace RobotArmHelix
              * This is useful when using x,y,z in the "new Point3D(x,y,z)* when defining a new RotateTransform3D() to check where the joints is actually  rotating */
             double[] angles = { joints[0].angle, joints[1].angle, joints[2].angle, joints[3].angle, joints[4].angle, joints[5].angle };
             ForwardKinematics(angles);
+            updateSpherePosition();
         }
 
         private Color changeModelColor(Joint pJoint, Color newColor)
@@ -428,9 +440,9 @@ namespace RobotArmHelix
 
         private void ViewPort3D_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-           // Point mousePos = e.GetPosition(viewPort3d);
-           // PointHitTestParameters hitParams = new PointHitTestParameters(mousePos);
-            //VisualTreeHelper.HitTest(viewPort3d, null, ResultCallback, hitParams);
+           Point mousePos = e.GetPosition(viewPort3d);
+           PointHitTestParameters hitParams = new PointHitTestParameters(mousePos);
+           VisualTreeHelper.HitTest(viewPort3d, null, ResultCallback, hitParams);
         }
 
         private void ViewPort3D_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -472,21 +484,16 @@ namespace RobotArmHelix
             if (timer1.Enabled)
             {
                 button.Content = "Go to position";
+                isAnimating = false;
                 timer1.Stop();
                 movements = 0;
             }
             else
             {
-                reachingPoint = new Vector3D(Double.Parse(TbX.Text), Double.Parse(TbY.Text), Double.Parse(TbZ.Text));
                 geom.Transform = new TranslateTransform3D(reachingPoint);
-
-                //for (int i = 0; i < 10; i++)
-                //{
-                //angles = InverseKinematics(reachingPoint, angles);
-                //}
-
                 movements = 5000;
                 button.Content = "STOP";
+                isAnimating = true;
                 timer1.Start();
             }
         }
@@ -505,6 +512,7 @@ namespace RobotArmHelix
             if ((--movements) <= 0)
             {
                 button.Content = "Go to position";
+                isAnimating = false;
                 timer1.Stop();
             }
         }
