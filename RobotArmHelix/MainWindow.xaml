@@ -55,7 +55,7 @@
         <Label Content="Z:" HorizontalAlignment="Left" Margin="199,83,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" />
         <Label x:Name="Tz_Copy" HorizontalAlignment="Left" Margin="216,83,0,0" VerticalAlignment="Top" Foreground="Black" Height="25" Width="62" ContentStringFormat="{}{0:0.##}"/>
         <Button x:Name="button" Content="Go to position" HorizontalAlignment="Left" Margin="230,10,0,0" VerticalAlignment="Top" Width="75" Height="28" FontSize="11" Click="StartInverseKinematics"/>
-        <Rectangle Fill="#FFFBFBFB" HorizontalAlignment="Left" Height="414" Stroke="Black" VerticalAlignment="Top" Width="306" StrokeThickness="0.5" Margin="4,418,0,0"/>
+        <Rectangle Fill="#FFFBFBFB" HorizontalAlignment="Left" Height="254" Stroke="Black" VerticalAlignment="Top" Width="306" StrokeThickness="0.5" Margin="4,418,0,0"/>
         <Slider x:Name="jointX" HorizontalAlignment="Left" Margin="45,540,0,0" VerticalAlignment="Top" Width="210"  Maximum="3000" ValueChanged="rotationPointChanged" Height="22" SmallChange="1" IsSnapToTickEnabled="True" Minimum="-3000"/>
         <Label Content="X" HorizontalAlignment="Left" Margin="9,536,0,0" VerticalAlignment="Top" Width="30" Foreground="Black" FontSize="14" FontWeight="Bold" Height="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
         <Label x:Name="jointXValue" HorizontalAlignment="Left" Margin="254,540,0,0"  VerticalAlignment="Top" Width="50" Foreground="Black" FontSize="10" Content="{Binding Value, ElementName=jointX}" Height="22" VerticalContentAlignment="Center"    />
