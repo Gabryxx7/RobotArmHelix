@@ -23,16 +23,38 @@ using System.IO;
  * **/
 namespace RobotArmHelix
 {
+    class Joint
+    {
+        public Model3D model = null;
+        public double angle = 0;
+        public double angleMin = -180;
+        public double angleMax = 180;
+        public int rotPointX = 0;
+        public int rotPointY = 0;
+        public int rotPointZ = 0;
+        public int rotAxisX = 0;
+        public int rotAxisY = 0;
+        public int rotAxisZ = 0;
+
+        public Joint(Model3D pModel)
+        {
+            model = pModel;
+        }
+    }
+
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
     public partial class MainWindow : Window
-    {
+   { 
         //provides functionality to 3d models
         Model3DGroup RA = new Model3DGroup(); //RoboticArm 3d group
         Model3D geom = null; //Debug sphere to check in which point the joint is rotatin
-        List<Model3D> links = null; //list of all the loaded 3d models of the joints
-        List<Tuple<double, double>> linksAngles = null; //list of all the loaded 3d models of the joints
+
+        List<Joint> joints = null;
+
+        bool switchingJoint = false;
+
         Color oldColor = Colors.White;
         GeometryModel3D oldSelectedModel = null;
         string basePath = "";
@@ -48,25 +70,40 @@ namespace RobotArmHelix
         Transform3DGroup F4;
         Transform3DGroup F5;
         Transform3DGroup F6;
+        RotateTransform3D R;
+        TranslateTransform3D T;
         Vector3D reachingPoint;
         int movements = 10;
         System.Windows.Forms.Timer timer1;
 
         //directroy of all stl files
+        /*private const string MODEL_PATH1 = "IRB6700-MH3_245-300_IRC5_rev02_LINK01_CAD.stl";
+        private const string MODEL_PATH2 = "IRB6700-MH3_245-300_IRC5_rev00_LINK02_CAD.stl";
+        private const string MODEL_PATH3 = "IRB6700-MH3_245-300_IRC5_rev02_LINK03_CAD.stl";
+        private const string MODEL_PATH4 = "IRB6700-MH3_245-300_IRC5_rev01_LINK04_CAD.stl";
+        private const string MODEL_PATH5 = "IRB6700-MH3_245-300_IRC5_rev01_LINK05_CAD.stl";
+        private const string MODEL_PATH6 = "IRB6700-MH3_245-300_IRC5_rev01_LINK06_CAD.stl";
+        private const string MODEL_PATH7 = "IRB6700-MH3_245-300_IRC5_rev00_ROD_CAD.stl";
+        private const string MODEL_PATH8 = "Assieme IRB 6700 245Kg 3.0m - IRB6700-MH3_245-300_IRC5_rev00_BASE_CAD-1.stl";
+        private const string MODEL_PATH9 = "Assieme IRB 6700 245Kg 3.0m - IRB6700-MH3_245-300_IRC5_rev00_CYLINDER_CAD-1.stl";
+        private const string MODEL_PATH10 = "Assieme IRB 6700 245Kg 3.0m - IRB6700-MH3_245-300_IRC5_rev00_LINK02_CABLE-1.stl";
+        private const string MODEL_PATH11 = "Assieme IRB 6700 245Kg 3.0m - IRB6700-MH3_245-300_IRC5_rev00_LINK03b_CABLE-1.stl";
+        private const string MODEL_PATH12 = "Assieme IRB 6700 245Kg 3.0m - IRB6700-MH3_245-300_IRC5_rev01_LINK01m_CABLE-1.stl";
+        private const string MODEL_PATH13 = "Assieme IRB 6700 245Kg 3.0m - IRB6700-MH3_245-300_IRC5_rev01_LINK03m_CABLE-1.stl";
+        private const string MODEL_PATH14 = "Assieme IRB 6700 245Kg 3.0m - IRB6700-MH3_245-300_IRC5_rev02_LINK01_CABLE-1.stl";*/
+
         private const string MODEL_PATH1 = "IRB4600_20kg-250_LINK1_CAD_rev04.stl";
         private const string MODEL_PATH2 = "IRB4600_20kg-250_LINK2_CAD_rev04.stl";
-        private const string MODEL_PATH3 = "IRB4600_20kg-250_LINK3_CAD_rev04.stl";
-        private const string MODEL_PATH4 = "IRB4600_20kg-250_LINK3_CAD_rev005.stl";
-        private const string MODEL_PATH5 = "IRB4600_20kg-250_LINK4_CAD_rev04.stl";
-        private const string MODEL_PATH6 = "IRB4600_20kg-250_LINK5_CAD_rev04.stl";
-        private const string MODEL_PATH7 = "IRB4600_20kg-250_LINK6_CAD_rev04.stl";
+        private const string MODEL_PATH3 = "IRB4600_20kg-250_LINK3_CAD_rev005.stl";
+        private const string MODEL_PATH4 = "IRB4600_20kg-250_LINK4_CAD_rev04.stl";
+        private const string MODEL_PATH5 = "IRB4600_20kg-250_LINK5_CAD_rev04.stl";
+        private const string MODEL_PATH6 = "IRB4600_20kg-250_LINK6_CAD_rev04.stl";
+        private const string MODEL_PATH7 = "IRB4600_20kg-250_LINK3_CAD_rev04.stl";
         private const string MODEL_PATH8 = "IRB4600_20kg-250_CABLES_LINK1_rev03.stl";
         private const string MODEL_PATH9 = "IRB4600_20kg-250_CABLES_LINK2_rev03.stl";
         private const string MODEL_PATH10 = "IRB4600_20kg-250_CABLES_LINK3_rev03.stl";
         private const string MODEL_PATH11 = "IRB4600_20kg-250_BASE_CAD_rev04.stl";
 
-        RotateTransform3D R = new RotateTransform3D();
-        TranslateTransform3D T = new TranslateTransform3D();
 
         public MainWindow()
         {
@@ -84,6 +121,9 @@ namespace RobotArmHelix
             modelsNames.Add(MODEL_PATH9);
             modelsNames.Add(MODEL_PATH10);
             modelsNames.Add(MODEL_PATH11);
+            //modelsNames.Add(MODEL_PATH12);
+            //modelsNames.Add(MODEL_PATH13);
+            //modelsNames.Add(MODEL_PATH14);
             RoboticArm.Content = Initialize_Environment(modelsNames);
 
             /** Debug sphere to check in which point the joint is rotating**/
@@ -93,13 +133,20 @@ namespace RobotArmHelix
             geom = new GeometryModel3D(builder.ToMesh(), Materials.Brown);
             visual = new ModelVisual3D();
             visual.Content = geom;
+
+
+            viewPort3d.RotateGesture = new MouseGesture(MouseAction.RightClick);
+            viewPort3d.PanGesture = new MouseGesture(MouseAction.LeftClick);
             viewPort3d.Children.Add(visual);
             viewPort3d.Children.Add(RoboticArm);
             viewPort3d.Camera.LookDirection = new Vector3D(2038, -5200, -2930);
             viewPort3d.Camera.UpDirection = new Vector3D(-0.145, 0.372, 0.917);
             viewPort3d.Camera.Position = new Point3D(-1571, 4801, 3774);
-            double[] angles = { joint1.Value, joint2.Value, joint3.Value, joint4.Value, joint5.Value, joint6.Value };
+
+            double[] angles = {joint1.Value, joint2.Value, joint3.Value, joint4.Value, joint5.Value, joint6.Value};
             ForwardKinematics(angles);
+
+            changeSelectedJoint();
 
             timer1 = new System.Windows.Forms.Timer();
             timer1.Interval = 5;
@@ -110,12 +157,10 @@ namespace RobotArmHelix
         {
             try
             {
-                viewPort3d.RotateGesture = new MouseGesture(MouseAction.RightClick);
-                viewPort3d.PanGesture = new MouseGesture(MouseAction.LeftClick);
                 ModelImporter import = new ModelImporter();
-                links = new List<Model3D>();
+                joints = new List<Joint>();
 
-                foreach (string modelName in modelsNames)
+                foreach(string modelName in modelsNames)
                 {
                     var materialGroup = new MaterialGroup();
                     Color mainColor = Colors.White;
@@ -127,40 +172,104 @@ namespace RobotArmHelix
                     materialGroup.Children.Add(specMat);
 
                     var link = import.Load(basePath + modelName);
-                    link.SetName(modelName);
                     GeometryModel3D model = link.Children[0] as GeometryModel3D;
                     model.Material = materialGroup;
                     model.BackMaterial = materialGroup;
-                    links.Add(link);
+                    joints.Add(new Joint(link));
                 }
 
-                changeModelColor(links[5], Colors.LightGray);
-                changeModelColor(links[6], Colors.LightGray);
-                changeModelColor(links[7], Colors.Black);
-                changeModelColor(links[8], Colors.Black);
-                changeModelColor(links[9], Colors.Black);
-                changeModelColor(links[10], Colors.Gray);
-                changeModelColor(links[2], Colors.Red);
+                changeModelColor(joints[6], Colors.Red);
+                changeModelColor(joints[7], Colors.Black);
+                changeModelColor(joints[8], Colors.Black);
+                changeModelColor(joints[9], Colors.Black);
+                changeModelColor(joints[10], Colors.Gray);
+                //changeModelColor(joints[11], Colors.Black);
+                //changeModelColor(joints[12], Colors.Black);
+                //changeModelColor(joints[13], Colors.Black);
 
-                RA.Children.Add(links[0]);
-                RA.Children.Add(links[1]);
-                RA.Children.Add(links[2]);
-                RA.Children.Add(links[3]);
-                RA.Children.Add(links[4]);
-                RA.Children.Add(links[5]);
-                RA.Children.Add(links[6]);
-                RA.Children.Add(links[7]);
-                RA.Children.Add(links[8]);
-                RA.Children.Add(links[9]);
-                RA.Children.Add(links[10]);
+                RA.Children.Add(joints[0].model);
+                RA.Children.Add(joints[1].model);
+                RA.Children.Add(joints[2].model);
+                RA.Children.Add(joints[3].model);
+                RA.Children.Add(joints[4].model);
+                RA.Children.Add(joints[5].model);
+                RA.Children.Add(joints[6].model);
+                RA.Children.Add(joints[7].model);
+                RA.Children.Add(joints[8].model);
+                RA.Children.Add(joints[9].model);
+                RA.Children.Add(joints[10].model);
+                //RA.Children.Add(links[11]);
+                //RA.Children.Add(links[12]);
+                //RA.Children.Add(links[13]);
+                
+                joints[0].angleMin = -180;
+                joints[0].angleMax = 180;
+                joints[0].rotAxisX = 0;
+                joints[0].rotAxisY = 0;
+                joints[0].rotAxisZ = 1;
+                joints[0].rotPointX = 0;
+                joints[0].rotPointY = 0;
+                joints[0].rotPointZ = 0;
 
-                linksAngles = new List<Tuple<double, double>>();
-                linksAngles.Add(new Tuple<double, double>(-180, 180));
-                linksAngles.Add(new Tuple<double, double>(-100, 60));
-                linksAngles.Add(new Tuple<double, double>(-90, 90));
-                linksAngles.Add(new Tuple<double, double>(-180, 180));
-                linksAngles.Add(new Tuple<double, double>(-115, 125));
-                linksAngles.Add(new Tuple<double, double>(-180, 180));
+                joints[1].angleMin = -100;
+                joints[1].angleMax = 60;
+                joints[1].rotAxisX = 0;
+                joints[1].rotAxisY = 1;
+                joints[1].rotAxisZ = 0;
+                //joints[1].rotPointX = 348; 
+                //joints[1].rotPointY = -243;
+                //joints[1].rotPointZ = 775;
+                joints[1].rotPointX = 175; 
+                joints[1].rotPointY = -200;
+                joints[1].rotPointZ = 500;
+
+                joints[2].angleMin = -90;
+                joints[2].angleMax = 90;
+                joints[2].rotAxisX = 0;
+                joints[2].rotAxisY = 1;
+                joints[2].rotAxisZ = 0;
+                //joints[2].rotPointX = 347;
+                //joints[2].rotPointY = -376;
+                //joints[2].rotPointZ = 1923;
+                joints[2].rotPointX = 190;
+                joints[2].rotPointY = -700;
+                joints[2].rotPointZ = 1595;
+
+                joints[3].angleMin = -180;
+                joints[3].angleMax = 180;
+                joints[3].rotAxisX = 1;
+                joints[3].rotAxisY = 0;
+                joints[3].rotAxisZ = 0;
+                //joints[3].rotPointX = 603;
+                //joints[3].rotPointY = 0;
+                //joints[3].rotPointZ = 2125;
+                joints[3].rotPointX = 400;
+                joints[3].rotPointY = 0;
+                joints[3].rotPointZ = 1765;
+
+                joints[4].angleMin = -115;
+                joints[4].angleMax = 115;
+                joints[4].rotAxisX = 0;
+                joints[4].rotAxisY = 1;
+                joints[4].rotAxisZ = 0;
+                //joints[4].rotPointX = 1815;
+                //joints[4].rotPointY = 0;
+                //joints[4].rotPointZ = 2125;
+                joints[4].rotPointX = 1405;
+                joints[4].rotPointY = 50;
+                joints[4].rotPointZ = 1765;
+
+                joints[5].angleMin = -180;
+                joints[5].angleMax = 180;
+                joints[5].rotAxisX = 1;
+                joints[5].rotAxisY = 0;
+                joints[5].rotAxisZ = 0;
+                //joints[5].rotPointX = 2008;
+                //joints[5].rotPointY = 0;
+                //joints[5].rotPointZ = 2125;
+                joints[5].rotPointX = 1405;
+                joints[5].rotPointY = 0;
+                joints[5].rotPointZ = 1765;
             }
             catch (Exception e)
             {
@@ -171,77 +280,20 @@ namespace RobotArmHelix
 
         public static T Clamp<T>(T value, T min, T max)
             where T : System.IComparable<T>
-        {
-            T result = value;
-            if (value.CompareTo(max) > 0)
-                result = max;
-            if (value.CompareTo(min) < 0)
-                result = min;
-            return result;
-        }
+                {
+                    T result = value;
+                    if (value.CompareTo(max) > 0)
+                        result = max;
+                    if (value.CompareTo(min) < 0)
+                        result = min;
+                    return result;
+                }
 
-
-
-        private void joint1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            execute_fk();
-        }
-
-        private void joint2_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            execute_fk();
-        }
-
-        private void joint3_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            execute_fk();
-        }
-
-        private void joint4_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            execute_fk();
-        }
-
-        private void joint5_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            execute_fk();
-        }
-
-        private void joint6_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            execute_fk();
-        }
-
-        /**
-         * This methodes execute the FK (Forward Kinematics). It starts from the first joint, the base.
-         * */
-        private void execute_fk()
-        {
-            /** Debug sphere, it takes the x,y,z of the textBoxes and update its position
-             * This is useful when using x,y,z in the "new Point3D(x,y,z)* when defining a new RotateTransform3D() to check where the joints is actually 
-               rotating */
-            //double x = Double.Parse(this.TbX.Text);
-            //double y = Double.Parse(this.TbY.Text);
-            //double z = Double.Parse(this.TbZ.Text);
-            //geom.Transform = new TranslateTransform3D(x, y, z);
-            double[] angles = { joint1.Value, joint2.Value, joint3.Value, joint4.Value, joint5.Value, joint6.Value };
-            ForwardKinematics(angles);
-        }
-
-        private void changeModelColor(Model3D mModel, Color newColor)
-        {
-            Model3DGroup models = ((Model3DGroup)mModel);
-            GeometryModel3D model = models.Children[0] as GeometryModel3D;
-            MaterialGroup mg = (MaterialGroup)model.Material;
-            ((EmissiveMaterial)mg.Children[0]).Color = newColor;
-            ((DiffuseMaterial)mg.Children[1]).Color = newColor;
-        }
-
-        private void TbX_TextChanged(object sender, TextChangedEventArgs e)
+        private void ReachingPoint_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
-                geom.Transform = new TranslateTransform3D(new Vector3D(Double.Parse(TbX.Text), Double.Parse(TbY.Text), Double.Parse(TbZ.Text)));
+                geom.Transform = new TranslateTransform3D(new Vector3D( Double.Parse(TbX.Text), Double.Parse(TbY.Text), Double.Parse(TbZ.Text)));
             }
             catch (Exception exc)
             {
@@ -249,13 +301,151 @@ namespace RobotArmHelix
             }
         }
 
+        private void jointSelector_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            changeSelectedJoint();
+        }
+
+        private void changeSelectedJoint()
+        {
+            if (joints == null)
+                return;
+
+            int sel = ((int)jointSelector.Value) - 1;
+            switchingJoint = true;
+            jointX.Value = joints[sel].rotPointX;
+            jointY.Value = joints[sel].rotPointY;
+            jointZ.Value = joints[sel].rotPointZ;
+            jointXAxis.IsChecked = joints[sel].rotAxisX == 1 ? true : false;
+            jointYAxis.IsChecked = joints[sel].rotAxisY == 1 ? true : false;
+            jointZAxis.IsChecked = joints[sel].rotAxisZ == 1 ? true : false;
+            unselectModel();
+            selectModel(joints[sel].model);
+            Transform3DGroup F = new Transform3DGroup();
+            F.Children.Add(new TranslateTransform3D(joints[sel].rotPointX, joints[sel].rotPointY, joints[sel].rotPointZ));
+            F.Children.Add(joints[sel].model.Transform);
+            geom.Transform = F;
+            switchingJoint = false;
+        }
+
+        private void rotationPointChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (switchingJoint)
+                return;
+
+            int sel = ((int)jointSelector.Value) - 1;
+            joints[sel].rotPointX = (int)jointX.Value;
+            joints[sel].rotPointY = (int)jointY.Value;
+            joints[sel].rotPointZ = (int)jointZ.Value;
+            geom.Transform = new TranslateTransform3D(joints[sel].rotPointX, joints[sel].rotPointY, joints[sel].rotPointZ);
+        }
+
+        private void joint_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            joints[0].angle = joint1.Value;
+            joints[1].angle = joint2.Value;
+            joints[2].angle = joint3.Value;
+            joints[3].angle = joint4.Value;
+            joints[4].angle = joint5.Value;
+            joints[5].angle = joint6.Value;
+            execute_fk();
+        }
+
+
+        private void CheckBox_StateChanged(object sender, RoutedEventArgs e)
+        {
+            if (switchingJoint)
+                return;
+
+            int sel = ((int)jointSelector.Value) - 1;
+            joints[sel].rotAxisX = jointXAxis.IsChecked.Value ? 1 : 0;
+            joints[sel].rotAxisY = jointYAxis.IsChecked.Value ? 1 : 0;
+            joints[sel].rotAxisZ = jointZAxis.IsChecked.Value ? 1 : 0;
+        }
+
+
+        /**
+         * This methodes execute the FK (Forward Kinematics). It starts from the first joint, the base.
+         * */
+        private void execute_fk()
+        {
+            /** Debug sphere, it takes the x,y,z of the textBoxes and update its position
+             * This is useful when using x,y,z in the "new Point3D(x,y,z)* when defining a new RotateTransform3D() to check where the joints is actually  rotating */
+            double[] angles = { joints[0].angle, joints[1].angle, joints[2].angle, joints[3].angle, joints[4].angle, joints[5].angle };
+            ForwardKinematics(angles);
+        }
+
+        private Color changeModelColor(Joint pJoint, Color newColor)
+        {
+            Model3DGroup models = ((Model3DGroup)pJoint.model);
+            return changeModelColor(models.Children[0] as GeometryModel3D, newColor);
+        }
+
+        private Color changeModelColor(GeometryModel3D pModel, Color newColor)
+        {
+            if (pModel == null)
+                return oldColor;
+
+            Color previousColor = Colors.Black;
+
+            MaterialGroup mg = (MaterialGroup)pModel.Material;
+            if (mg.Children.Count > 0)
+            {
+                try
+                {
+                    previousColor = ((EmissiveMaterial)mg.Children[0]).Color;
+                    ((EmissiveMaterial)mg.Children[0]).Color = newColor;
+                    ((DiffuseMaterial)mg.Children[1]).Color = newColor;
+                }
+                catch (Exception exc)
+                {
+                    previousColor = oldColor;
+                }
+            }
+
+            return previousColor;
+        }
+
+
+        private void selectModel(Model3D pModel)
+        {
+            try
+            {
+                Model3DGroup models = ((Model3DGroup) pModel);
+                oldSelectedModel = models.Children[0] as GeometryModel3D;
+            }
+            catch (Exception exc)
+            {
+                oldSelectedModel = (GeometryModel3D) pModel;
+            }
+            oldColor = changeModelColor(oldSelectedModel, ColorHelper.HexToColor("#ff3333"));
+        }
+
+        private void unselectModel()
+        {
+            changeModelColor(oldSelectedModel, oldColor);
+        }
+
         private void ViewPort3D_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+           // Point mousePos = e.GetPosition(viewPort3d);
+           // PointHitTestParameters hitParams = new PointHitTestParameters(mousePos);
+            //VisualTreeHelper.HitTest(viewPort3d, null, ResultCallback, hitParams);
+        }
 
-            Point mousePos = e.GetPosition(viewPort3d);
-            PointHitTestParameters hitParams = new PointHitTestParameters(mousePos);
-            VisualTreeHelper.HitTest(viewPort3d, null, ResultCallback, hitParams);
+        private void ViewPort3D_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // Perform the hit test on the mouse's position relative to the viewport.
+            HitTestResult result = VisualTreeHelper.HitTest(viewPort3d, e.GetPosition(viewPort3d));
+            RayMeshGeometry3DHitTestResult mesh_result = result as RayMeshGeometry3DHitTestResult;
 
+            if (oldSelectedModel != null)
+                unselectModel();
+
+            if (mesh_result != null)
+            {
+                selectModel(mesh_result.ModelHit);
+            }
         }
 
         public HitTestResultBehavior ResultCallback(HitTestResult result)
@@ -276,54 +466,6 @@ namespace RobotArmHelix
 
             return HitTestResultBehavior.Continue;
         }
-
-        private void ViewPort3D_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            // Get the mouse's position relative to the viewport.
-            Point mouse_pos = e.GetPosition(viewPort3d);
-
-            // Perform the hit test.
-            HitTestResult result =
-            VisualTreeHelper.HitTest(viewPort3d, mouse_pos);    // Display information about the hit.
-            RayMeshGeometry3DHitTestResult mesh_result = result as RayMeshGeometry3DHitTestResult;
-
-            MaterialGroup mg = null;
-            if (oldSelectedModel != null)
-            {
-                mg = (MaterialGroup)oldSelectedModel.Material;
-                try
-                {
-                    ((EmissiveMaterial)mg.Children[0]).Color = oldColor;
-                    ((DiffuseMaterial)mg.Children[1]).Color = oldColor;
-                }
-                catch (Exception exc)
-                {
-
-                }
-            }
-
-            if (mesh_result != null)
-            {
-                // Display the name of the model.
-                GeometryModel3D model = mesh_result.ModelHit as GeometryModel3D;
-                oldSelectedModel = model;
-                mg = (MaterialGroup)oldSelectedModel.Material;
-                if (mg.Children.Count > 0)
-                {
-                    try
-                    {
-                        oldColor = ((EmissiveMaterial)mg.Children[0]).Color;
-                        ((EmissiveMaterial)mg.Children[0]).Color = ColorHelper.HexToColor("#ff3333");
-                        ((DiffuseMaterial)mg.Children[1]).Color = ColorHelper.HexToColor("#ff3333");
-                    }
-                    catch (Exception exc)
-                    {
-
-                    }
-                }
-            }
-        }
-
 
         public void StartInverseKinematics(object sender, RoutedEventArgs e)
         {
@@ -351,21 +493,22 @@ namespace RobotArmHelix
 
         public void timer1_Tick(object sender, EventArgs e)
         {
-            double[] angles = { joint1.Value, joint2.Value, joint3.Value, joint4.Value, joint5.Value, joint6.Value };
+            double[] angles = {joints[0].angle, joints[1].angle, joints[2].angle, joints[3].angle, joints[4].angle, joints[5].angle};
             angles = InverseKinematics(reachingPoint, angles);
-            joint1.Value = angles[0];
-            joint2.Value = angles[1];
-            joint3.Value = angles[2];
-            joint4.Value = angles[3];
-            joint5.Value = angles[4];
-            joint6.Value = angles[5];
+            joint1.Value = joints[0].angle = angles[0];
+            joint2.Value = joints[1].angle = angles[1];
+            joint3.Value = joints[2].angle = angles[2];
+            joint4.Value = joints[3].angle = angles[3];
+            joint5.Value = joints[4].angle = angles[4];
+            joint6.Value = joints[5].angle = angles[5];
+
             if ((--movements) <= 0)
             {
                 button.Content = "Go to position";
                 timer1.Stop();
             }
         }
-
+       
         public double[] InverseKinematics(Vector3D target, double[] angles)
         {
             if (DistanceFromTarget(target, angles) < DistanceThreshold)
@@ -376,7 +519,7 @@ namespace RobotArmHelix
 
             double[] oldAngles = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
             angles.CopyTo(oldAngles, 0);
-            for (int i = 5; i >= 0; i--)
+            for (int i = 0; i <= 5; i++)
             {
                 // Gradient descent
                 // Update : Solution -= LearningRate * Gradient
@@ -384,7 +527,7 @@ namespace RobotArmHelix
                 angles[i] -= LearningRate * gradient;
 
                 // Clamp
-                angles[i] = Clamp(angles[i], linksAngles[i].Item1, linksAngles[i].Item2);
+                angles[i] = Clamp(angles[i], joints[i].angleMin, joints[i].angleMax);
 
                 // Early termination
                 if (DistanceFromTarget(target, angles) < DistanceThreshold || checkAngles(oldAngles, angles))
@@ -399,14 +542,13 @@ namespace RobotArmHelix
 
         public bool checkAngles(double[] oldAngles, double[] angles)
         {
-            for (int i = 0; i <= 5; i++)
+            for(int i = 0; i <= 5; i++)
             {
                 if (oldAngles[i] != angles[i])
                     return false;
             }
 
             return true;
-
         }
 
         public double PartialGradient(Vector3D target, double[] angles, int i)
@@ -432,17 +574,16 @@ namespace RobotArmHelix
 
         public double DistanceFromTarget(Vector3D target, double[] angles)
         {
-            Vector3D point = ForwardKinematics(angles);
-
+            Vector3D point = ForwardKinematics (angles);      
             return Math.Sqrt(Math.Pow((point.X - target.X), 2.0) + Math.Pow((point.Y - target.Y), 2.0) + Math.Pow((point.Z - target.Z), 2.0));
         }
+        
 
-
-        public Vector3D ForwardKinematics(double[] angles)
-        {
+        public Vector3D ForwardKinematics(double [] angles)
+        {            
             //The base only has rotation and is always at the origin, so the only transform in the transformGroup is the rotation R
             F1 = new Transform3DGroup();
-            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), angles[0]), new Point3D(0, 0, 0));
+            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(joints[0].rotAxisX, joints[0].rotAxisY, joints[0].rotAxisZ), angles[0]), new Point3D(joints[0].rotPointX, joints[0].rotPointY, joints[0].rotPointZ));
             F1.Children.Add(R);
 
             //This moves the first joint attached to the base, it may translate and rotate. Since the joint are already in the right position (the .stl model also store the joints position
@@ -452,8 +593,8 @@ namespace RobotArmHelix
             //After some testing it looks like the point 175, -200, 500 is the sweet spot to achieve the rotation intended for the joint
             //finally we also need to apply the transformation applied to the base 
             F2 = new Transform3DGroup();
-            T = new TranslateTransform3D(0, 0, 0);
-            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 1, 0), angles[1]), new Point3D(175, -200, 500));
+            T = new TranslateTransform3D(0,0,0);
+            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(joints[1].rotAxisX, joints[1].rotAxisY, joints[1].rotAxisZ), angles[1]), new Point3D(joints[1].rotPointX, joints[1].rotPointY, joints[1].rotPointZ));
             F2.Children.Add(T);
             F2.Children.Add(R);
             F2.Children.Add(F1);
@@ -462,15 +603,15 @@ namespace RobotArmHelix
             //and again the previous transformation needs to be applied
             F3 = new Transform3DGroup();
             T = new TranslateTransform3D(0, 0, 0);
-            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 1, 0), angles[2]), new Point3D(190, -170, 1595));
+            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(joints[2].rotAxisX, joints[2].rotAxisY, joints[2].rotAxisZ), angles[2]), new Point3D(joints[2].rotPointX, joints[2].rotPointY, joints[2].rotPointZ));
             F3.Children.Add(T);
             F3.Children.Add(R);
             F3.Children.Add(F2);
 
             //as before
             F4 = new Transform3DGroup();
-            T = new TranslateTransform3D(0, 0, 0);
-            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), angles[3]), new Point3D(400, 0, 1765));
+            T = new TranslateTransform3D(0,0,0); //1500, 650, 1650
+            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(joints[3].rotAxisX, joints[3].rotAxisY, joints[3].rotAxisZ), angles[3]), new Point3D(joints[3].rotPointX, joints[3].rotPointY, joints[3].rotPointZ));
             F4.Children.Add(T);
             F4.Children.Add(R);
             F4.Children.Add(F3);
@@ -478,7 +619,7 @@ namespace RobotArmHelix
             //as before
             F5 = new Transform3DGroup();
             T = new TranslateTransform3D(0, 0, 0);
-            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 1, 0), angles[4]), new Point3D(1405, 50, 1765));
+            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(joints[4].rotAxisX, joints[4].rotAxisY, joints[4].rotAxisZ), angles[4]), new Point3D(joints[4].rotPointX, joints[4].rotPointY, joints[4].rotPointZ));
             F5.Children.Add(T);
             F5.Children.Add(R);
             F5.Children.Add(F4);
@@ -488,36 +629,37 @@ namespace RobotArmHelix
             //Should always be applied as last (FORWARD Kinematics)
             F6 = new Transform3DGroup();
             T = new TranslateTransform3D(0, 0, 0);
-            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), angles[5]), new Point3D(1405, 0, 1765));
+            R = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(joints[5].rotAxisX, joints[5].rotAxisY, joints[5].rotAxisZ), angles[5]), new Point3D(joints[5].rotPointX, joints[5].rotPointY, joints[5].rotPointZ));
             F6.Children.Add(T);
             F6.Children.Add(R);
             F6.Children.Add(F5);
 
-            links[0].Transform = F1; //First joint
-            links[7].Transform = F1; //Cables
+            joints[0].model.Transform = F1; //First joint
+            joints[7].model.Transform = F1; //Cables
 
-            links[1].Transform = F2; //Second joint (the "biceps")
-            links[8].Transform = F2; //Cables
+            joints[1].model.Transform = F2; //Second joint (the "biceps")
+            joints[8].model.Transform = F2; //Cables
 
-            links[2].Transform = F3; //third joint (the "knee" or "elbow")
-            links[3].Transform = F3; //The ABB writings on the third joint (it should rotate according to the joint itself)
-            links[9].Transform = F3; //Cables
+            joints[2].model.Transform = F3; //third joint (the "knee" or "elbow")
+            joints[6].model.Transform = F3; //The ABB writing
+            joints[9].model.Transform = F3; //Cables
 
-            links[4].Transform = F4; //the "forearm"
+            joints[3].model.Transform = F4; //the "forearm"
 
+            joints[4].model.Transform = F5; //the tool plate
 
-            links[5].Transform = F5; //the tool plate
-            links[6].Transform = F6; //the tool
+            joints[5].model.Transform = F6; //the tool
 
-            Tx.Content = links[6].Bounds.Location.X;
-            Ty.Content = links[6].Bounds.Location.Y;
-            Tz.Content = links[6].Bounds.Location.Z;
+            Tx.Content = joints[5].model.Bounds.Location.X;
+            Ty.Content = joints[5].model.Bounds.Location.Y;
+            Tz.Content = joints[5].model.Bounds.Location.Z;
             Tx_Copy.Content = geom.Bounds.Location.X;
             Ty_Copy.Content = geom.Bounds.Location.Y;
             Tz_Copy.Content = geom.Bounds.Location.Z;
 
-            return new Vector3D(links[6].Bounds.Location.X, links[6].Bounds.Location.Y, links[6].Bounds.Location.Z);
+            return new Vector3D(joints[5].model.Bounds.Location.X, joints[5].model.Bounds.Location.Y, joints[5].model.Bounds.Location.Z);
         }
 
     }
+
 }
