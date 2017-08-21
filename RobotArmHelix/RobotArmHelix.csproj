@@ -106,12 +106,24 @@
     <None Include="3D_Models\IRB4600_20kg-250_LINK5_CAD_rev04.stl" />
     <None Include="3D_Models\IRB4600_20kg-250_LINK6_CAD_rev04.stl" />
     <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_CYLINDER_CAD.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_LINK02m_CABLE.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_LINK02_CABLE.stl" />
     <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_LINK02_CAD.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_LINK03a_CABLE.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_LINK03b_CABLE.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_LOGO1_CAD.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_LOGO2_CAD.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_LOGO3_CAD.stl" />
     <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev00_ROD_CAD.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev01_BASE_CAD.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev01_LINK04_CABLE.stl" />
     <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev01_LINK04_CAD.stl" />
     <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev01_LINK05_CAD.stl" />
     <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev01_LINK06_CAD.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev02_LINK01m_CABLE.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev02_LINK01_CABLE.stl" />
     <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev02_LINK01_CAD.stl" />
+    <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev02_LINK03m_CABLE.stl" />
     <None Include="3D_Models\IRB6700-MH3_245-300_IRC5_rev02_LINK03_CAD.stl" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
