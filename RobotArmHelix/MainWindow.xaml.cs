@@ -412,15 +412,36 @@ namespace RobotArmHelix
 
             int sel = ((int)jointSelector.Value) - 1;
             switchingJoint = true;
-            jointX.Value = joints[sel].rotPointX;
-            jointY.Value = joints[sel].rotPointY;
-            jointZ.Value = joints[sel].rotPointZ;
-            jointXAxis.IsChecked = joints[sel].rotAxisX == 1 ? true : false;
-            jointYAxis.IsChecked = joints[sel].rotAxisY == 1 ? true : false;
-            jointZAxis.IsChecked = joints[sel].rotAxisZ == 1 ? true : false;
             unselectModel();
-            selectModel(joints[sel].model);
-            updateSpherePosition();
+            if(sel < 0)
+            {
+                jointX.IsEnabled = false;
+                jointY.IsEnabled = false;
+                jointZ.IsEnabled = false;
+                jointXAxis.IsEnabled = false;
+                jointYAxis.IsEnabled = false;
+                jointZAxis.IsEnabled = false;
+            }
+            else
+            {
+                if (!jointX.IsEnabled)
+                {
+                    jointX.IsEnabled = true;
+                    jointY.IsEnabled = true;
+                    jointZ.IsEnabled = true;
+                    jointXAxis.IsEnabled = true;
+                    jointYAxis.IsEnabled = true;
+                    jointZAxis.IsEnabled = true;
+                }
+                jointX.Value = joints[sel].rotPointX;
+                jointY.Value = joints[sel].rotPointY;
+                jointZ.Value = joints[sel].rotPointZ;
+                jointXAxis.IsChecked = joints[sel].rotAxisX == 1 ? true : false;
+                jointYAxis.IsChecked = joints[sel].rotAxisY == 1 ? true : false;
+                jointZAxis.IsChecked = joints[sel].rotAxisZ == 1 ? true : false;
+                selectModel(joints[sel].model);
+                updateSpherePosition();
+            }
             switchingJoint = false;
         }
 
@@ -439,6 +460,9 @@ namespace RobotArmHelix
         private void updateSpherePosition()
         {
             int sel = ((int)jointSelector.Value) - 1;
+            if (sel < 0)
+                return;
+
             Transform3DGroup F = new Transform3DGroup();
             F.Children.Add(new TranslateTransform3D(joints[sel].rotPointX, joints[sel].rotPointY, joints[sel].rotPointZ));
             F.Children.Add(joints[sel].model.Transform);
